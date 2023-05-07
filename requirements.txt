@@ -1,0 +1,6 @@
+dotenv
+python-dotenv
+azure-cognitiveservices-speech
+python-dotenv
+openai
+simpleaudio
