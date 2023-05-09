@@ -18,7 +18,7 @@ settings = {
 def start_recording():
     # Creates an instance of a speech config with specified subscription key and service region.
     speech_config = speechsdk.SpeechConfig(
-        subscription="cf83de0bc01e4a33a660cc86b9e0616d",
+        subscription="skalmdksmadkmaomdka",
         region="uksouth",
     )
     # speech_config.request_word_level()
