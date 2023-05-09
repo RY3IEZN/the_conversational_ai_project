@@ -4,3 +4,4 @@ azure-cognitiveservices-speech
 python-dotenv
 openai
 simpleaudio
+numpy
