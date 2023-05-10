@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 import os
 import time
 from datetime import datetime
+import simpleaudio as sa
 from sounds import play_sound
 
 load_dotenv(override=True)
@@ -18,8 +19,8 @@ settings = {
 def start_recording():
     # Creates an instance of a speech config with specified subscription key and service region.
     speech_config = speechsdk.SpeechConfig(
-        subscription="skalmdksmadkmaomdka",
-        region="uksouth",
+        subscription=settings["speechKey"],
+        region=settings["region"],
     )
     # speech_config.request_word_level()
     speech_config.set_property(
@@ -54,7 +55,6 @@ def start_recording():
     def speech_detected():
         nonlocal last_spoken
         last_spoken = int(datetime.now().timestamp() * 1000)
-        print(last_spoken, "last spkemmmmm")
 
     def speech_canceled(evt):
         nonlocal done
@@ -96,7 +96,6 @@ def start_recording():
         time.sleep(1)
         now = int(datetime.now().timestamp() * 1000)
         inactivity = now - last_spoken
-        print(inactivity, "========================")
         if inactivity > 1000:
             play_sound()
         # check if no activity after 3000ms, then call the stop recognising func
@@ -111,3 +110,41 @@ def start_recording():
         output += items["SPOKEN_WORD"]
 
     return output
+
+
+def speak(text, output_folder):
+    # Creates an instance of a speech config with specified subscription key and service region.
+    speech_config = speechsdk.SpeechConfig(
+        subscription=settings["speechKey"],
+        region=settings["region"],
+    )
+
+    file_name = f'{output_folder}/{datetime.now().strftime("%Y%m%d_%H%M%S")}.wav'
+    audio_config = speechsdk.audio.AudioOutputConfig(
+        use_default_speaker=True, filename=file_name
+    )
+
+    # The language of the voice that speaks.
+    speech_config.speech_synthesis_voice_name = "en-US-JennyNeural"
+
+    speech_synthesizer = speechsdk.SpeechSynthesizer(
+        speech_config=speech_config, audio_config=audio_config
+    )
+
+    speech_synthesis_result = speech_synthesizer.speak_text(
+        text
+    )  # .speak_text(text) #.get()
+
+    if (
+        speech_synthesis_result.reason
+        == speechsdk.ResultReason.SynthesizingAudioCompleted
+    ):
+        play_obj = sa.WaveObject.from_wave_file(file_name).play()
+        play_obj.wait_done()
+    elif speech_synthesis_result.reason == speechsdk.ResultReason.Canceled:
+        cancellation_details = speech_synthesis_result.cancellation_details
+        print("Speech synthesis canceled: {}".format(cancellation_details.reason))
+        if cancellation_details.reason == speechsdk.CancellationReason.Error:
+            if cancellation_details.error_details:
+                print("Error details: {}".format(cancellation_details.error_details))
+                print("Did you set the speech resource key and region values?")
